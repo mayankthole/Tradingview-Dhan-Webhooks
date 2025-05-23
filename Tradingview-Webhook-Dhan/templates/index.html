@@ -1,0 +1,1813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradingView Webhook Instructions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .stock-section {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+        }
+        .signal-group {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 0;
+            border: 2px solid #ffffff;
+        }
+        .signal-group h3 {
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        /* CALL Options - Bullish (Green) */
+        .signal-group.call-options {
+            background-color: rgba(46, 204, 113, 0.05);
+            border: 1px solid rgba(46, 204, 113, 0.2);
+        }
+        .signal-group.call-options h3 {
+            color: #27ae60;
+        }
+        /* PUT Options - Bearish (Red) */
+        .signal-group.put-options {
+            background-color: rgba(231, 76, 60, 0.05);
+            border: 1px solid rgba(231, 76, 60, 0.2);
+        }
+        .signal-group.put-options h3 {
+            color: #c0392b;
+        }
+        /* Exit Signals - Neutral (Blue) */
+        .signal-group.exit-signals {
+            background-color: rgba(52, 152, 219, 0.05);
+            border: 1px solid rgba(52, 152, 219, 0.2);
+        }
+        .signal-group.exit-signals h3 {
+            color: #2980b9;
+        }
+        .signal {
+            margin: 10px 0;
+            padding: 15px;
+            background-color: #ffffff;
+            border-radius: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+            border: 1px solid #eee;
+        }
+        .signal:hover {
+            transform: translateY(-2px);
+            background-color: #f8f9fa;
+        }
+        .signal:hover .json-code {
+            background-color: #2c3e50;
+            color: #ffffff;
+        }
+        .signal-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .signal-desc {
+            color: #666;
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+        .json-code {
+            background-color: #2c3e50;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 0;
+            font-family: monospace;
+            margin: 5px 0;
+            white-space: pre-wrap;
+            font-size: 0.9em;
+            border: 1px solid #ffffff;
+        }
+        .note {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .setup-steps {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .setup-steps ol {
+            margin-left: 20px;
+        }
+        .setup-steps li {
+            margin: 10px 0;
+        }
+        /* Add a subtle animation for the signal boxes */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .signal {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* Updated Navigation Menu Styles */
+        .nav-menu {
+            background-color: #2c3e50;
+            padding: 20px;
+            border-radius: 0;
+            margin-bottom: 30px;
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+            border: 2px solid #ffffff;
+        }
+
+        .nav-menu:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .nav-menu h3 {
+            color: #ffffff;
+            margin: 0 0 20px 0;
+            text-align: center;
+            font-size: 1.4em;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border-bottom: 2px solid #ffffff;
+            padding-bottom: 10px;
+        }
+
+        .stock-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            padding: 5px;
+        }
+
+        .stock-link {
+            background-color: transparent;
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 0;
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+            border: 1px solid #ffffff;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .stock-link:hover {
+            background-color: #ffffff;
+            color: #2c3e50;
+            transform: translateY(-1px);
+        }
+
+        /* Updated Section Header Styles */
+        .stock-section {
+            scroll-margin-top: 120px;
+            position: relative;
+        }
+
+        .stock-section h2 {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 0;
+            margin: 30px 0;
+            text-align: center;
+            position: sticky;
+            top: 100px;
+            z-index: 90;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 2px solid #ffffff;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .stock-section h2:hover {
+            background-color: #34495e;
+            transform: translateY(-1px);
+        }
+
+        /* Add a scroll progress indicator */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #3498db;
+            transform-origin: 0 50%;
+            transform: scaleX(0);
+            z-index: 1000;
+        }
+
+        /* Add a back to top button */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: #2c3e50;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            opacity: 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 1000;
+            border: 2px solid #ffffff;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+        }
+
+        .back-to-top:hover {
+            background-color: #34495e;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="scroll-progress"></div>
+    <div class="container">
+        <h1>TradingView Webhook Instructions</h1>
+
+        <!-- Updated Navigation Menu -->
+        <div class="nav-menu">
+            <h3>Quick Navigation</h3>
+            <div class="stock-links">
+                <a href="#nifty" class="stock-link">NIFTY</a>
+                <a href="#banknifty" class="stock-link">BANKNIFTY</a>
+                <a href="#bel" class="stock-link">BEL</a>
+                <a href="#hal" class="stock-link">HAL</a>
+                <a href="#hindalco" class="stock-link">HINDALCO</a>
+                <a href="#coalindia" class="stock-link">COALINDIA</a>
+                <a href="#reliance" class="stock-link">RELIANCE</a>
+                <a href="#tatamotors" class="stock-link">TATAMOTORS</a>
+                <a href="#indusindbk" class="stock-link">INDUSINDBK</a>
+                <a href="#hdfcbank" class="stock-link">HDFCBANK</a>
+                <a href="#sbin" class="stock-link">SBIN</a>
+                <a href="#infy" class="stock-link">INFY</a>
+                <a href="#bhartiartl" class="stock-link">BHARTIARTL</a>
+                <a href="#icicibank" class="stock-link">ICICIBANK</a>
+                <a href="#bhel" class="stock-link">BHEL</a>
+                <a href="#canbk" class="stock-link">CANBK</a>
+                <a href="#axisbank" class="stock-link">AXISBANK</a>
+                <a href="#ntpc" class="stock-link">NTPC</a>
+                <a href="#pfc" class="stock-link">PFC</a>
+                <a href="#kotakbank" class="stock-link">KOTAKBANK</a>
+                <a href="#tatapower" class="stock-link">TATAPOWER</a>
+                <a href="#hindunilvr" class="stock-link">HINDUNILVR</a>
+            </div>
+        </div>
+
+        <div class="setup-steps">
+            <h2>How to Set Up in TradingView</h2>
+            <ol>
+                <li>Open your TradingView chart</li>
+                <li>Click on "Alerts" (bell icon)</li>
+                <li>Click "Create Alert"</li>
+                <li>Set your alert conditions</li>
+                <li>Under "Notifications", click "Webhook URL"</li>
+                <li>Enter your webhook URL: <code>http://your-server-ip/webhook</code></li>
+                <li>In the "Message" field, copy and paste the JSON message from below</li>
+                <li>Click "Create" to save the alert</li>
+            </ol>
+        </div>
+
+        <div class="note">
+            <strong>Important:</strong> Make sure to copy the exact JSON format for each signal. The webhook server expects the message in this specific format.
+        </div>
+
+        <!-- NIFTY Section -->
+        <div id="nifty" class="stock-section">
+            <h2>NIFTY Options</h2>
+            
+            <div class="signal-group call-options">
+                <h3>CALL Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">12:6 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 12 ATM CALL options, Sell 6 ITM CALL option</div>
+                    <div class="json-code">{
+    "message": "NIFTY-ENTRY-CALL-12"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">24:12 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 24 ATM CALL options, Sell 12 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "NIFTY-ENTRY-CALL-24"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">36:18 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 36 ATM CALL options, Sell 18 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "NIFTY-ENTRY-CALL-36"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group put-options">
+                <h3>PUT Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">12:6 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 12 ATM PUT options, Sell 6 ITM PUT option</div>
+                    <div class="json-code">{
+    "message": "NIFTY-ENTRY-PUT-12"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">24:12 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 24 ATM PUT options, Sell 12 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "NIFTY-ENTRY-PUT-24"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">36:18 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 36 ATM PUT options, Sell 18 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "NIFTY-ENTRY-PUT-36"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group exit-signals">
+                <h3>Exit Signals</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">Close Half Positions</div>
+                    <div class="signal-desc">Closes half of each open position</div>
+                    <div class="json-code">{
+    "message": "NIFTY-EXIT-HALF"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">Close All Positions</div>
+                    <div class="signal-desc">Closes all open positions</div>
+                    <div class="json-code">{
+    "message": "NIFTY-EXIT-FULL"
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BANKNIFTY Section -->
+        <div id="banknifty" class="stock-section">
+            <h2>BANKNIFTY Options</h2>
+            
+            <div class="signal-group call-options">
+                <h3>CALL Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">12:6 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 12 ATM CALL options, Sell 6 ITM CALL option</div>
+                    <div class="json-code">{
+    "message": "BANKNIFTY-ENTRY-CALL-12"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">24:12 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 24 ATM CALL options, Sell 12 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "BANKNIFTY-ENTRY-CALL-24"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">36:18 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 36 ATM CALL options, Sell 18 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "BANKNIFTY-ENTRY-CALL-36"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group put-options">
+                <h3>PUT Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">12:6 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 12 ATM PUT options, Sell 6 ITM PUT option</div>
+                    <div class="json-code">{
+    "message": "BANKNIFTY-ENTRY-PUT-12"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">24:12 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 24 ATM PUT options, Sell 12 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "BANKNIFTY-ENTRY-PUT-24"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">36:18 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 36 ATM PUT options, Sell 18 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "BANKNIFTY-ENTRY-PUT-36"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group exit-signals">
+                <h3>Exit Signals</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">Close Half Positions</div>
+                    <div class="signal-desc">Closes half of each open position</div>
+                    <div class="json-code">{
+    "message": "BANKNIFTY-EXIT-HALF"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">Close All Positions</div>
+                    <div class="signal-desc">Closes all open positions</div>
+                    <div class="json-code">{
+    "message": "BANKNIFTY-EXIT-FULL"
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BEL Section -->
+        <div id="bel" class="stock-section">
+            <h2>BEL Options</h2>
+            
+            <div class="signal-group call-options">
+                <h3>CALL Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM CALL options, Sell 2 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "BEL-ENTRY-CALL-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM CALL options, Sell 4 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "BEL-ENTRY-CALL-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group put-options">
+                <h3>PUT Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM PUT options, Sell 2 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "BEL-ENTRY-PUT-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM PUT options, Sell 4 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "BEL-ENTRY-PUT-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group exit-signals">
+                <h3>Exit Signals</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">Close Half Positions</div>
+                    <div class="signal-desc">Closes half of each open position</div>
+                    <div class="json-code">{
+    "message": "BEL-EXIT-HALF"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">Close All Positions</div>
+                    <div class="signal-desc">Closes all open positions</div>
+                    <div class="json-code">{
+    "message": "BEL-EXIT-FULL"
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HAL Section -->
+        <div id="hal" class="stock-section">
+            <h2>HAL Options</h2>
+            
+            <div class="signal-group call-options">
+                <h3>CALL Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM CALL options, Sell 2 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "HAL-ENTRY-CALL-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM CALL options, Sell 4 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "HAL-ENTRY-CALL-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group put-options">
+                <h3>PUT Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM PUT options, Sell 2 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "HAL-ENTRY-PUT-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM PUT options, Sell 4 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "HAL-ENTRY-PUT-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group exit-signals">
+                <h3>Exit Signals</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">Close Half Positions</div>
+                    <div class="signal-desc">Closes half of each open position</div>
+                    <div class="json-code">{
+    "message": "HAL-EXIT-HALF"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">Close All Positions</div>
+                    <div class="signal-desc">Closes all open positions</div>
+                    <div class="json-code">{
+    "message": "HAL-EXIT-FULL"
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HINDALCO Section -->
+        <div id="hindalco" class="stock-section">
+            <h2>HINDALCO Options</h2>
+            
+            <div class="signal-group call-options">
+                <h3>CALL Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM CALL options, Sell 2 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "HINDALCO-ENTRY-CALL-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM CALL options, Sell 4 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "HINDALCO-ENTRY-CALL-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group put-options">
+                <h3>PUT Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM PUT options, Sell 2 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "HINDALCO-ENTRY-PUT-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM PUT options, Sell 4 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "HINDALCO-ENTRY-PUT-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group exit-signals">
+                <h3>Exit Signals</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">Close Half Positions</div>
+                    <div class="signal-desc">Closes half of each open position</div>
+                    <div class="json-code">{
+    "message": "HINDALCO-EXIT-HALF"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">Close All Positions</div>
+                    <div class="signal-desc">Closes all open positions</div>
+                    <div class="json-code">{
+    "message": "HINDALCO-EXIT-FULL"
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COALINDIA Section -->
+        <div id="coalindia" class="stock-section">
+            <h2>COALINDIA Options</h2>
+            
+            <div class="signal-group call-options">
+                <h3>CALL Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM CALL options, Sell 2 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "COALINDIA-ENTRY-CALL-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM CALL options, Sell 4 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "COALINDIA-ENTRY-CALL-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group put-options">
+                <h3>PUT Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM PUT options, Sell 2 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "COALINDIA-ENTRY-PUT-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM PUT options, Sell 4 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "COALINDIA-ENTRY-PUT-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group exit-signals">
+                <h3>Exit Signals</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">Close Half Positions</div>
+                    <div class="signal-desc">Closes half of each open position</div>
+                    <div class="json-code">{
+    "message": "COALINDIA-EXIT-HALF"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">Close All Positions</div>
+                    <div class="signal-desc">Closes all open positions</div>
+                    <div class="json-code">{
+    "message": "COALINDIA-EXIT-FULL"
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RELIANCE Section -->
+        <div id="reliance" class="stock-section">
+            <h2>RELIANCE Options</h2>
+            
+            <div class="signal-group call-options">
+                <h3>CALL Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM CALL options, Sell 2 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "RELIANCE-ENTRY-CALL-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM CALL options, Sell 4 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "RELIANCE-ENTRY-CALL-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group put-options">
+                <h3>PUT Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM PUT options, Sell 2 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "RELIANCE-ENTRY-PUT-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM PUT options, Sell 4 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "RELIANCE-ENTRY-PUT-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group exit-signals">
+                <h3>Exit Signals</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">Close Half Positions</div>
+                    <div class="signal-desc">Closes half of each open position</div>
+                    <div class="json-code">{
+    "message": "RELIANCE-EXIT-HALF"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">Close All Positions</div>
+                    <div class="signal-desc">Closes all open positions</div>
+                    <div class="json-code">{
+    "message": "RELIANCE-EXIT-FULL"
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TATAMOTORS Section -->
+        <div id="tatamotors" class="stock-section">
+            <h2>TATAMOTORS Options</h2>
+            
+            <div class="signal-group call-options">
+                <h3>CALL Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM CALL options, Sell 2 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "TATAMOTORS-ENTRY-CALL-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM CALL options, Sell 4 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "TATAMOTORS-ENTRY-CALL-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group put-options">
+                <h3>PUT Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM PUT options, Sell 2 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "TATAMOTORS-ENTRY-PUT-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM PUT options, Sell 4 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "TATAMOTORS-ENTRY-PUT-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group exit-signals">
+                <h3>Exit Signals</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">Close Half Positions</div>
+                    <div class="signal-desc">Closes half of each open position</div>
+                    <div class="json-code">{
+    "message": "TATAMOTORS-EXIT-HALF"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">Close All Positions</div>
+                    <div class="signal-desc">Closes all open positions</div>
+                    <div class="json-code">{
+    "message": "TATAMOTORS-EXIT-FULL"
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INDUSINDBK Section -->
+        <div id="indusindbk" class="stock-section">
+            <h2>INDUSINDBK Options</h2>
+            
+            <div class="signal-group call-options">
+                <h3>CALL Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM CALL options, Sell 2 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "INDUSINDBK-ENTRY-CALL-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM CALL options, Sell 4 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "INDUSINDBK-ENTRY-CALL-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group put-options">
+                <h3>PUT Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM PUT options, Sell 2 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "INDUSINDBK-ENTRY-PUT-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM PUT options, Sell 4 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "INDUSINDBK-ENTRY-PUT-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group exit-signals">
+                <h3>Exit Signals</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">Close Half Positions</div>
+                    <div class="signal-desc">Closes half of each open position</div>
+                    <div class="json-code">{
+    "message": "INDUSINDBK-EXIT-HALF"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">Close All Positions</div>
+                    <div class="signal-desc">Closes all open positions</div>
+                    <div class="json-code">{
+    "message": "INDUSINDBK-EXIT-FULL"
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HDFCBANK Section -->
+        <div id="hdfcbank" class="stock-section">
+            <h2>HDFCBANK Options</h2>
+            
+            <div class="signal-group call-options">
+                <h3>CALL Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM CALL options, Sell 2 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "HDFCBANK-ENTRY-CALL-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM CALL options, Sell 4 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "HDFCBANK-ENTRY-CALL-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group put-options">
+                <h3>PUT Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM PUT options, Sell 2 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "HDFCBANK-ENTRY-PUT-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM PUT options, Sell 4 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "HDFCBANK-ENTRY-PUT-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group exit-signals">
+                <h3>Exit Signals</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">Close Half Positions</div>
+                    <div class="signal-desc">Closes half of each open position</div>
+                    <div class="json-code">{
+    "message": "HDFCBANK-EXIT-HALF"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">Close All Positions</div>
+                    <div class="signal-desc">Closes all open positions</div>
+                    <div class="json-code">{
+    "message": "HDFCBANK-EXIT-FULL"
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SBIN Section -->
+        <div id="sbin" class="stock-section">
+            <h2>SBIN Options</h2>
+            
+            <div class="signal-group call-options">
+                <h3>CALL Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM CALL options, Sell 2 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "SBIN-ENTRY-CALL-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM CALL options, Sell 4 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "SBIN-ENTRY-CALL-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group put-options">
+                <h3>PUT Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM PUT options, Sell 2 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "SBIN-ENTRY-PUT-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM PUT options, Sell 4 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "SBIN-ENTRY-PUT-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group exit-signals">
+                <h3>Exit Signals</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">Close Half Positions</div>
+                    <div class="signal-desc">Closes half of each open position</div>
+                    <div class="json-code">{
+    "message": "SBIN-EXIT-HALF"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">Close All Positions</div>
+                    <div class="signal-desc">Closes all open positions</div>
+                    <div class="json-code">{
+    "message": "SBIN-EXIT-FULL"
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INFY Section -->
+        <div id="infy" class="stock-section">
+            <h2>INFY Options</h2>
+            
+            <div class="signal-group call-options">
+                <h3>CALL Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM CALL options, Sell 2 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "INFY-ENTRY-CALL-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM CALL options, Sell 4 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "INFY-ENTRY-CALL-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group put-options">
+                <h3>PUT Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM PUT options, Sell 2 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "INFY-ENTRY-PUT-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM PUT options, Sell 4 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "INFY-ENTRY-PUT-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group exit-signals">
+                <h3>Exit Signals</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">Close Half Positions</div>
+                    <div class="signal-desc">Closes half of each open position</div>
+                    <div class="json-code">{
+    "message": "INFY-EXIT-HALF"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">Close All Positions</div>
+                    <div class="signal-desc">Closes all open positions</div>
+                    <div class="json-code">{
+    "message": "INFY-EXIT-FULL"
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BHARTIARTL Section -->
+        <div id="bhartiartl" class="stock-section">
+            <h2>BHARTIARTL Options</h2>
+            
+            <div class="signal-group call-options">
+                <h3>CALL Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM CALL options, Sell 2 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "BHARTIARTL-ENTRY-CALL-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM CALL options, Sell 4 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "BHARTIARTL-ENTRY-CALL-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group put-options">
+                <h3>PUT Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM PUT options, Sell 2 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "BHARTIARTL-ENTRY-PUT-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM PUT options, Sell 4 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "BHARTIARTL-ENTRY-PUT-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group exit-signals">
+                <h3>Exit Signals</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">Close Half Positions</div>
+                    <div class="signal-desc">Closes half of each open position</div>
+                    <div class="json-code">{
+    "message": "BHARTIARTL-EXIT-HALF"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">Close All Positions</div>
+                    <div class="signal-desc">Closes all open positions</div>
+                    <div class="json-code">{
+    "message": "BHARTIARTL-EXIT-FULL"
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ICICIBANK Section -->
+        <div id="icicibank" class="stock-section">
+            <h2>ICICIBANK Options</h2>
+            
+            <div class="signal-group call-options">
+                <h3>CALL Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM CALL options, Sell 2 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "ICICIBANK-ENTRY-CALL-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM CALL options, Sell 4 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "ICICIBANK-ENTRY-CALL-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group put-options">
+                <h3>PUT Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM PUT options, Sell 2 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "ICICIBANK-ENTRY-PUT-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM PUT options, Sell 4 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "ICICIBANK-ENTRY-PUT-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group exit-signals">
+                <h3>Exit Signals</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">Close Half Positions</div>
+                    <div class="signal-desc">Closes half of each open position</div>
+                    <div class="json-code">{
+    "message": "ICICIBANK-EXIT-HALF"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">Close All Positions</div>
+                    <div class="signal-desc">Closes all open positions</div>
+                    <div class="json-code">{
+    "message": "ICICIBANK-EXIT-FULL"
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BHEL Section -->
+        <div id="bhel" class="stock-section">
+            <h2>BHEL Options</h2>
+            
+            <div class="signal-group call-options">
+                <h3>CALL Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM CALL options, Sell 2 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "BHEL-ENTRY-CALL-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM CALL options, Sell 4 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "BHEL-ENTRY-CALL-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group put-options">
+                <h3>PUT Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM PUT options, Sell 2 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "BHEL-ENTRY-PUT-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM PUT options, Sell 4 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "BHEL-ENTRY-PUT-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group exit-signals">
+                <h3>Exit Signals</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">Close Half Positions</div>
+                    <div class="signal-desc">Closes half of each open position</div>
+                    <div class="json-code">{
+    "message": "BHEL-EXIT-HALF"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">Close All Positions</div>
+                    <div class="signal-desc">Closes all open positions</div>
+                    <div class="json-code">{
+    "message": "BHEL-EXIT-FULL"
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CANBK Section -->
+        <div id="canbk" class="stock-section">
+            <h2>CANBK Options</h2>
+            
+            <div class="signal-group call-options">
+                <h3>CALL Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM CALL options, Sell 2 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "CANBK-ENTRY-CALL-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM CALL options, Sell 4 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "CANBK-ENTRY-CALL-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group put-options">
+                <h3>PUT Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM PUT options, Sell 2 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "CANBK-ENTRY-PUT-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM PUT options, Sell 4 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "CANBK-ENTRY-PUT-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group exit-signals">
+                <h3>Exit Signals</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">Close Half Positions</div>
+                    <div class="signal-desc">Closes half of each open position</div>
+                    <div class="json-code">{
+    "message": "CANBK-EXIT-HALF"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">Close All Positions</div>
+                    <div class="signal-desc">Closes all open positions</div>
+                    <div class="json-code">{
+    "message": "CANBK-EXIT-FULL"
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AXISBANK Section -->
+        <div id="axisbank" class="stock-section">
+            <h2>AXISBANK Options</h2>
+            
+            <div class="signal-group call-options">
+                <h3>CALL Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM CALL options, Sell 2 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "AXISBANK-ENTRY-CALL-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM CALL options, Sell 4 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "AXISBANK-ENTRY-CALL-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group put-options">
+                <h3>PUT Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM PUT options, Sell 2 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "AXISBANK-ENTRY-PUT-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM PUT options, Sell 4 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "AXISBANK-ENTRY-PUT-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group exit-signals">
+                <h3>Exit Signals</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">Close Half Positions</div>
+                    <div class="signal-desc">Closes half of each open position</div>
+                    <div class="json-code">{
+    "message": "AXISBANK-EXIT-HALF"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">Close All Positions</div>
+                    <div class="signal-desc">Closes all open positions</div>
+                    <div class="json-code">{
+    "message": "AXISBANK-EXIT-FULL"
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NTPC Section -->
+        <div id="ntpc" class="stock-section">
+            <h2>NTPC Options</h2>
+            
+            <div class="signal-group call-options">
+                <h3>CALL Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM CALL options, Sell 2 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "NTPC-ENTRY-CALL-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM CALL options, Sell 4 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "NTPC-ENTRY-CALL-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group put-options">
+                <h3>PUT Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM PUT options, Sell 2 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "NTPC-ENTRY-PUT-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM PUT options, Sell 4 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "NTPC-ENTRY-PUT-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group exit-signals">
+                <h3>Exit Signals</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">Close Half Positions</div>
+                    <div class="signal-desc">Closes half of each open position</div>
+                    <div class="json-code">{
+    "message": "NTPC-EXIT-HALF"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">Close All Positions</div>
+                    <div class="signal-desc">Closes all open positions</div>
+                    <div class="json-code">{
+    "message": "NTPC-EXIT-FULL"
+}</div>
+                </div>
+            </div>
+        </div>
+        <!-- PFC Section -->
+        <div id="pfc" class="stock-section">
+            <h2>PFC Options</h2>
+            
+            <div class="signal-group call-options">
+                <h3>CALL Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM CALL options, Sell 2 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "PFC-ENTRY-CALL-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM CALL options, Sell 4 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "PFC-ENTRY-CALL-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group put-options">
+                <h3>PUT Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM PUT options, Sell 2 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "PFC-ENTRY-PUT-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM PUT options, Sell 4 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "PFC-ENTRY-PUT-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group exit-signals">
+                <h3>Exit Signals</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">Close Half Positions</div>
+                    <div class="signal-desc">Closes half of each open position</div>
+                    <div class="json-code">{
+    "message": "PFC-EXIT-HALF"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">Close All Positions</div>
+                    <div class="signal-desc">Closes all open positions</div>
+                    <div class="json-code">{
+    "message": "PFC-EXIT-FULL"
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KOTAKBANK Section -->
+        <div id="kotakbank" class="stock-section">
+            <h2>KOTAKBANK Options</h2>
+            
+            <div class="signal-group call-options">
+                <h3>CALL Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM CALL options, Sell 2 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "KOTAKBANK-ENTRY-CALL-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM CALL options, Sell 4 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "KOTAKBANK-ENTRY-CALL-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group put-options">
+                <h3>PUT Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM PUT options, Sell 2 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "KOTAKBANK-ENTRY-PUT-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM PUT options, Sell 4 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "KOTAKBANK-ENTRY-PUT-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group exit-signals">
+                <h3>Exit Signals</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">Close Half Positions</div>
+                    <div class="signal-desc">Closes half of each open position</div>
+                    <div class="json-code">{
+    "message": "KOTAKBANK-EXIT-HALF"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">Close All Positions</div>
+                    <div class="signal-desc">Closes all open positions</div>
+                    <div class="json-code">{
+    "message": "KOTAKBANK-EXIT-FULL"
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TATAPOWER Section -->
+        <div id="tatapower" class="stock-section">
+            <h2>TATAPOWER Options</h2>
+            
+            <div class="signal-group call-options">
+                <h3>CALL Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM CALL options, Sell 2 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "TATAPOWER-ENTRY-CALL-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM CALL options, Sell 4 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "TATAPOWER-ENTRY-CALL-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group put-options">
+                <h3>PUT Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM PUT options, Sell 2 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "TATAPOWER-ENTRY-PUT-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM PUT options, Sell 4 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "TATAPOWER-ENTRY-PUT-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group exit-signals">
+                <h3>Exit Signals</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">Close Half Positions</div>
+                    <div class="signal-desc">Closes half of each open position</div>
+                    <div class="json-code">{
+    "message": "TATAPOWER-EXIT-HALF"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">Close All Positions</div>
+                    <div class="signal-desc">Closes all open positions</div>
+                    <div class="json-code">{
+    "message": "TATAPOWER-EXIT-FULL"
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HINDUNILVR Section -->
+        <div id="hindunilvr" class="stock-section">
+            <h2>HINDUNILVR Options</h2>
+            
+            <div class="signal-group call-options">
+                <h3>CALL Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM CALL options, Sell 2 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "HINDUNILVR-ENTRY-CALL-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio CALL Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM CALL options, Sell 4 ITM CALL options</div>
+                    <div class="json-code">{
+    "message": "HINDUNILVR-ENTRY-CALL-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group put-options">
+                <h3>PUT Options</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">4:2 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 4 ATM PUT options, Sell 2 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "HINDUNILVR-ENTRY-PUT-4"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">8:4 Ratio PUT Backspread</div>
+                    <div class="signal-desc">Buy 8 ATM PUT options, Sell 4 ITM PUT options</div>
+                    <div class="json-code">{
+    "message": "HINDUNILVR-ENTRY-PUT-8"
+}</div>
+                </div>
+            </div>
+
+            <div class="signal-group exit-signals">
+                <h3>Exit Signals</h3>
+                
+                <div class="signal">
+                    <div class="signal-name">Close Half Positions</div>
+                    <div class="signal-desc">Closes half of each open position</div>
+                    <div class="json-code">{
+    "message": "HINDUNILVR-EXIT-HALF"
+}</div>
+                </div>
+
+                <div class="signal">
+                    <div class="signal-name">Close All Positions</div>
+                    <div class="signal-desc">Closes all open positions</div>
+                    <div class="json-code">{
+    "message": "HINDUNILVR-EXIT-FULL"
+}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <a href="#" class="back-to-top">↑</a>
+
+    <script>
+        // Add scroll progress indicator
+        window.addEventListener('scroll', () => {
+            const scrollProgress = document.querySelector('.scroll-progress');
+            const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+            scrollProgress.style.transform = `scaleX(${scrolled / 100})`;
+        });
+
+        // Add back to top button visibility
+        window.addEventListener('scroll', () => {
+            const backToTop = document.querySelector('.back-to-top');
+            if (window.scrollY > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+
+        // Smooth scroll for back to top
+        document.querySelector('.back-to-top').addEventListener('click', (e) => {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+</html> 
